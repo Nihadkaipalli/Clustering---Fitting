@@ -1,4 +1,3 @@
-# Importing necessary libraries
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,10 +9,32 @@ import scipy.stats
 
 # Define the curve fit function
 def curve_fit_function(x, a, b, c):
+    """
+    Exponential curve fit function.
+
+    Parameters:
+        x (array): Independent variable.
+        a, b, c (float): Parameters to be optimized.
+
+    Returns:
+        array: Fitted values based on the curve fit function.
+    """
     return a * np.exp(b * (x - x.iloc[0])) + c
 
 # Function to estimate confidence range
 def err_ranges(x, pcov, *popt, confidence=0.95):
+    """
+    Estimate confidence range for the curve fit.
+
+    Parameters:
+        x (array): Independent variable.
+        pcov (array): Covariance matrix from curve_fit.
+        *popt (float): Optimized parameters.
+        confidence (float): Confidence level (default is 0.95).
+
+    Returns:
+        tuple: Lower and upper bounds of the confidence interval.
+    """
     perr = np.sqrt(np.diag(pcov))
     t_value = scipy.stats.t.ppf((1 + confidence) / 2, len(x) - len(popt))
     lower_bound = curve_fit_function(x, *(popt - t_value * perr))
@@ -22,6 +43,16 @@ def err_ranges(x, pcov, *popt, confidence=0.95):
 
 # Function to read and clean data
 def read_and_clean_data(file_path, output_file):
+    """
+    Read and clean data from a CSV file, and save the cleaned data.
+
+    Parameters:
+        file_path (str): Path to the CSV file.
+        output_file (str): Path to save the cleaned data.
+
+    Returns:
+        DataFrame: Cleaned data.
+    """
     df_melt = pd.read_csv(file_path).melt(
         id_vars=['Country Name', 'Country Code', 'Indicator Name', 'Indicator Code'],
         var_name='Year', value_name='Value'
@@ -38,6 +69,16 @@ def read_and_clean_data(file_path, output_file):
 
 # Function to perform clustering and calculate silhouette score
 def perform_clustering(data, num_clusters):
+    """
+    Perform KMeans clustering on numeric data and calculate silhouette score.
+
+    Parameters:
+        data (DataFrame): Input data.
+        num_clusters (int): Number of clusters for KMeans.
+
+    Returns:
+        tuple: Data with cluster labels, KMeans model.
+    """
     numeric_columns = data.select_dtypes(include=[np.number]).columns
     numeric_data = data[numeric_columns]
 
@@ -57,6 +98,16 @@ def perform_clustering(data, num_clusters):
 
 # Function to plot clusters
 def plot_clusters(data, kmeans, x_column, y_column, title):
+    """
+    Plot clusters and cluster centers.
+
+    Parameters:
+        data (DataFrame): Input data with cluster labels.
+        kmeans (KMeans): Fitted KMeans model.
+        x_column (str): Column for the x-axis.
+        y_column (str): Column for the y-axis.
+        title (str): Plot title.
+    """
     plt.figure(figsize=(10, 8))
     for cluster in range(kmeans.n_clusters):
         cluster_data = data[data['Cluster'] == cluster]
@@ -71,6 +122,15 @@ def plot_clusters(data, kmeans, x_column, y_column, title):
 
 # Function for curve fitting and prediction
 def curve_fit_and_predict(data, country_name, x_column, y_column):
+    """
+    Perform curve fitting and prediction for a specific country.
+
+    Parameters:
+        data (DataFrame): Input data.
+        country_name (str): Name of the country.
+        x_column (str): Column for the x-axis.
+        y_column (str): Column for the y-axis.
+    """
     country_data = data[data['Country Name'] == country_name]
     x_data = country_data['Year'].astype(int)
     y_data = country_data[y_column].astype(float)
@@ -107,8 +167,7 @@ def curve_fit_and_predict(data, country_name, x_column, y_column):
     plt.legend()
     plt.grid(True)
     plt.show()
-    
-   
+
 # Data processing and clustering for CO2 emissions
 co2_data = read_and_clean_data('CO2 Emission.csv', 'co2_cleaned.csv')
 forest_data = read_and_clean_data('Forest Area.csv', 'forest_cleaned.csv')
